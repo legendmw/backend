@@ -7,9 +7,12 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const { Storage } = require('@google-cloud/storage');
+const config = require('./config');
 
 app.use(express.json());
 app.use(cors());
+
 
 // Database Connection With MongoDB
 const mongoUri = process.env.MONGODB_URI;
@@ -26,25 +29,36 @@ app.get("/", (req, res) => {
     res.send("Express App is Running")
 });
 
-// Image Storage Engine
-const storage = multer.diskStorage({
-    destination: './upload/images',
-    filename: (req, file, cb) => {
-        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`)
+// Image Storage
+const storage= new Storage({
+    projectId: config.GCLOUD.projectId,
+    keyFilename: config.GCLOUD.keyFilename
+});
+
+const bucket = storage.bucket(config.GCLOUD.bucketName);
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits:{
+        fileSize:10*1024*1024
     }
 });
 
-const upload = multer({ storage: storage });
-
-// Creating Upload Endpoint for images
-app.use('/images', express.static('upload/images'));
-
 app.post("/upload", upload.single('product'), (req, res) => {
-    res.json({
-        success: 1,
-        image_url: `http://backend-production-5954.up.railway.app:${port}/images/${req.file.filename}`
+    const file = req.file;
+    const filename = `images/${file.originalname}`;
+    const fileBuffer = file.buffer;
+    bucket.file(filename).save(fileBuffer, (err) => {
+        if (err) {
+          console.error(err);
+          res.status(500).send({ message: 'Error uploading file' });
+        } else {
+            res.json({
+              success: 1,
+              image_url: `https://storage.cloud.google.com/${config.GCLOUD.bucketName}/${filename}`
+            });
+        }
     });
-});
+  });
 
 // Schema for Creating Products
 const Product = mongoose.model("Product", {
