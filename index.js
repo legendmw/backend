@@ -1,25 +1,25 @@
+require('dotenv').config();
+const port = 4000;
 const express = require("express");
+const app = express();
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 
-const app = express();
-const port = process.env.PORT || 4000;
-
 app.use(express.json());
 app.use(cors());
 
 // Database Connection With MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+const mongoUri = process.env.MONGODB_URI;
+mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => console.log('MongoDB connected...'))
+    .catch(err => console.log('MongoDB connection error:', err));
 
 // API Creation
 app.get("/", (req, res) => {
-    res.send("Express App is Running");
+    res.send("Express App is Running")
 });
 
 // Image Storage Engine
@@ -147,7 +147,7 @@ const Users = mongoose.model('Users', {
 app.post('/signup', async (req, res) => {
     let check = await Users.findOne({ email: req.body.email });
     if (check) {
-        return res.status(400).json({ success: false, errors: "existing user found with same email address" });
+        return res.status(400).json({ success: false, errors: "existing user found with same email address" })
     }
     let cart = {};
     for (let i = 0; i < 300; i++) {
@@ -193,7 +193,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Creating endpoint for newcollection data
+// Creating endpoint for new collection data
 app.get('/newcollections', async (req, res) => {
     let products = await Product.find({});
     let newcollection = products.slice(1).slice(-8);
@@ -225,7 +225,7 @@ const fetchUser = async (req, res, next) => {
     }
 };
 
-// Creating endpoint for adding products in cartdata
+// Creating endpoint for adding products in cart data
 app.post('/addtocart', fetchUser, async (req, res) => {
     console.log("Added", req.body.itemId);
     let userData = await Users.findOne({ _id: req.user.id });
@@ -234,44 +234,28 @@ app.post('/addtocart', fetchUser, async (req, res) => {
     res.send("Added");
 });
 
-// Creating endpoint to remove product from cartdata
+// Creating endpoint to remove product from cart data
 app.post('/removefromcart', fetchUser, async (req, res) => {
     console.log("removed", req.body.itemId);
     let userData = await Users.findOne({ _id: req.user.id });
-    if (userData.cartData[req.body.itemId] > 0)
+    if (userData.cartData[req.body.itemId] > 0) {
         userData.cartData[req.body.itemId] -= 1;
-    await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
-    res.send("removed");
-});
-
-// Creating endpoint to fetch data for cart
-app.get('/fetchcart', fetchUser, async (req, res) => {
-    let products = await Product.find({});
-    let userData = await Users.findOne({ _id: req.user.id });
-    let cartArray = [];
-    for (let i = 0; i < 300; i++) {
-        if (userData.cartData[i] > 0) {
-            let data = {
-                id: i,
-                name: products[i].name,
-                image: products[i].image,
-                category: products[i].category,
-                price: products[i].new_price,
-                quantity: userData.cartData[i],
-            };
-            cartArray.push(data);
-        }
     }
-    res.send(cartArray);
+    await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userData.cartData });
+    res.send("Removed");
 });
 
-// Creating endpoint to check user is logged in or not
-app.post('/getuser', fetchUser, async (req, res) => {
-    const userId = req.user.id;
-    const user = await Users.findOne({ _id: userId }).select('-password');
-    res.send(user);
+// Creating endpoint to get cart data
+app.post('/getcart', fetchUser, async (req, res) => {
+    console.log("GetCart");
+    let userData = await Users.findOne({ _id: req.user.id });
+    res.json(userData.cartData);
 });
 
-app.listen(port, () => {
-    console.log(`Express App is running on port ${port}`);
+app.listen(port, (error) => {
+    if (!error) {
+        console.log("Server Running on Port " + port);
+    } else {
+        console.log("Error : " + error);
+    }
 });
