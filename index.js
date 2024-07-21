@@ -21,7 +21,7 @@ if (!mongoUri) {
 }
 
 mongoose.connect(mongoUri)
-    .then(() => console.log('MongoDB connected...'))
+    .then(() => console.log('MongoDB connected....'))
     .catch(err => console.log('MongoDB connection error:', err));
 
 // API Creation
