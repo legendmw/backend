@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config();  // Ensure this line is at the top
 const port = 4000;
 const express = require("express");
 const app = express();
@@ -13,6 +13,10 @@ app.use(cors());
 
 // Database Connection With MongoDB
 const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+    throw new Error('MongoDB URI is not defined in the environment variables.');
+}
+
 mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log('MongoDB connection error:', err));
