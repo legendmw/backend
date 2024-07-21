@@ -1,5 +1,5 @@
 require('dotenv').config();  // Ensure this line is at the top
-const port = 4000;
+const port = 5500;
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
