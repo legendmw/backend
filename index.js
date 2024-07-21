@@ -17,7 +17,7 @@ if (!mongoUri) {
     throw new Error('MongoDB URI is not defined in the environment variables.');
 }
 
-mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongoUri)
     .then(() => console.log('MongoDB connected...'))
     .catch(err => console.log('MongoDB connection error:', err));
 
