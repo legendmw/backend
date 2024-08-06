@@ -12,6 +12,36 @@ const config = require('./config');
 
 app.use(express.json());
 app.use(cors());
+app.use(express.json());
+
+app.post('/create-checkout-session', async (req, res) => {
+    const {cartItems} = req.body;
+
+    const lineItems = Object.keys(cartItems).map(itemId => {
+        const product = all_product.find(product => product.id === Number(itemId));
+        return {
+            price_data: {
+                currency: 'usd',
+                product_data: {
+                    name: product.name,
+                    images: [product.image],
+                },
+                unit_amount: product.new_price * 100, // Amount in cents
+            },
+            quantity: cartItems[itemId],
+        };
+    });
+
+    const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: lineItems,
+        mode: 'payment',
+        success_url: 'http://localhost:3000/success', // Replace with your success URL
+        cancel_url: 'http://localhost:3000/cancel', // Replace with your cancel URL
+    });
+
+    res.json({ id: session.id });
+});
 
 
 // Database Connection With MongoDB
