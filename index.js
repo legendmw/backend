@@ -36,8 +36,8 @@ app.post('/create-checkout-session', async (req, res) => {
         payment_method_types: ['card'],
         line_items: lineItems,
         mode: 'payment',
-        success_url: 'http://localhost:3000/success', // Replace with your success URL
-        cancel_url: 'http://localhost:3000/cancel', // Replace with your cancel URL
+        success_url: 'http://backend-production-5954.up.railway.app/success', // Replace with your success URL
+        cancel_url: 'https://backend-production-5954.up.railway.app/cancel', // Replace with your cancel URL
     });
 
     res.json({ id: session.id });
@@ -69,7 +69,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Creating Upload Endpoint for images
+//  Upload Endpoint for images
 app.use('/images', express.static('upload/images'));
 
 app.post("/upload", upload.single('product'), (req, res) => {
@@ -78,7 +78,7 @@ app.post("/upload", upload.single('product'), (req, res) => {
         image_url: `https://backend-production-5954.up.railway.app/images/${req.file.filename}`
     });
 });
-// Schema for Creating Products
+// Schema for Products
 const Product = mongoose.model("Product", {
     id: {
         type: Number,
@@ -141,7 +141,7 @@ app.post('/addproduct', async (req, res) => {
     });
 });
 
-// Creating API For deleting Products
+//  API For deleting Products
 app.post('/removeproduct', async (req, res) => {
     await Product.findOneAndDelete({ id: req.body.id });
     console.log("Removed");
@@ -151,14 +151,14 @@ app.post('/removeproduct', async (req, res) => {
     });
 });
 
-// Creating API for getting all products
+//  API for getting all products
 app.get('/allproducts', async (req, res) => {
     let products = await Product.find({});
     console.log("All Products Fetched");
     res.send(products);
 });
 
-// Schema creating for User model
+// Schema  for User model
 const Users = mongoose.model('Users', {
     name: {
         type: String,
@@ -179,7 +179,7 @@ const Users = mongoose.model('Users', {
     }
 });
 
-// Creating Endpoint for registering the user
+// Endpoint for registering the user
 app.post('/signup', async (req, res) => {
     let check = await Users.findOne({ email: req.body.email });
     if (check) {
@@ -208,7 +208,7 @@ app.post('/signup', async (req, res) => {
     res.json({ success: true, token });
 });
 
-// Creating endpoint for user login
+// endpoint for user login
 app.post('/login', async (req, res) => {
     let user = await Users.findOne({ email: req.body.email });
     if (user) {
@@ -229,7 +229,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// Creating endpoint for new collection data
+//  endpoint for new collection data
 app.get('/newcollections', async (req, res) => {
     let products = await Product.find({});
     let newcollection = products.slice(1).slice(-8);
@@ -237,7 +237,7 @@ app.get('/newcollections', async (req, res) => {
     res.send(newcollection);
 });
 
-// Creating endpoint for popular in stationary section
+// endpoint for popular in stationary section
 app.get('/popularinstationary', async (req, res) => {
     let products = await Product.find({ category: "stationary" });
     let popular_in_women = products.slice(0, 4);
@@ -245,7 +245,7 @@ app.get('/popularinstationary', async (req, res) => {
     res.send(popular_in_women);
 });
 
-// Creating middleware to fetch user
+//  middleware to fetch user
 const fetchUser = async (req, res, next) => {
     const token = req.header('auth-token');
     if (!token) {
@@ -261,7 +261,7 @@ const fetchUser = async (req, res, next) => {
     }
 };
 
-// Creating endpoint for adding products in cart data
+//  endpoint for adding products in cart data
 app.post('/addtocart', fetchUser, async (req, res) => {
     console.log("Added", req.body.itemId);
     let userData = await Users.findOne({ _id: req.user.id });
@@ -270,7 +270,7 @@ app.post('/addtocart', fetchUser, async (req, res) => {
     res.send("Added");
 });
 
-// Creating endpoint to remove product from cart data
+// endpoint to remove product from cart data
 app.post('/removefromcart', fetchUser, async (req, res) => {
     console.log("removed", req.body.itemId);
     let userData = await Users.findOne({ _id: req.user.id });
@@ -281,7 +281,7 @@ app.post('/removefromcart', fetchUser, async (req, res) => {
     res.send("Removed");
 });
 
-// Creating endpoint to get cart data
+// endpoint to get cart data
 app.post('/getcart', fetchUser, async (req, res) => {
     console.log("GetCart");
     let userData = await Users.findOne({ _id: req.user.id });
